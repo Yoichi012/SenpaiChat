@@ -20,12 +20,17 @@ def load_plugins(client: Client) -> None:
         if not filename.endswith(".py") or filename.startswith("__"):
             continue
         module_name = f"senpai_bot.plugins.{filename[:-3]}"
-        module = importlib.import_module(module_name)
-        if hasattr(module, "register"):
-            try:
-                module.register(client)
-            except Exception:
-                pass  # ignore plugin registration errors
+        try:
+            module = importlib.import_module(module_name)
+            print(f"✓ Loaded plugin: {module_name}")
+            if hasattr(module, "register"):
+                try:
+                    module.register(client)
+                    print(f"✓ Registered handlers for: {module_name}")
+                except Exception as e:
+                    print(f"✗ Failed to register {module_name}: {e}")
+        except Exception as e:
+            print(f"✗ Failed to load {module_name}: {e}")
 
 
 async def sync_time():
