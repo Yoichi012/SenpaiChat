@@ -57,12 +57,15 @@ def register(client):
     client.add_handler(
         filters.command("start") & (filters.chat_type.private | filters.chat_type.groups),
         _start_handler,
+        group=0,
     )
     client.add_handler(
         filters.callback_query(filters.regex("^cb_friends$")),
         _cb_friends,
+        group=0,
     )
     client.add_handler(
         filters.callback_query(filters.regex("^cb_back_main$")),
         _cb_back_main,
+        group=0,
     )

@@ -1,8 +1,10 @@
 import asyncio
 import importlib
 import os
+import subprocess
 from typing import List
 
+import pyrogram
 from pyrogram import Client
 
 from senpai_bot import config
@@ -26,7 +28,33 @@ def load_plugins(client: Client) -> None:
                 pass  # ignore plugin registration errors
 
 
+async def sync_time():
+    """Sync system time with NTP servers to fix BadMsgNotification[16] error."""
+    try:
+        subprocess.run(
+            ["sudo", "ntpdate", "-u", "pool.ntp.org"],
+            capture_output=True,
+            timeout=10,
+        )
+    except Exception:
+        pass
+    try:
+        subprocess.run(
+            ["sudo", "timedatectl", "set-ntp", "true"],
+            capture_output=True,
+            timeout=10,
+        )
+    except Exception:
+        pass
+
+
 async def main():
+    # Sync system time before connecting to Telegram
+    await sync_time()
+
+    # Configure Pyrogram session for reliability
+    pyrogram.session.Session.MAX_RETRIES = 5
+
     # ensure Mongo connection (lazy)
     try:
         _ = db

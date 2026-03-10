@@ -161,9 +161,9 @@ async def _broadcast_handler(client, message: Message):
                 pass
 
 
-# register handler
-broadcast_handler = filters.command("broadcast")
-
-
 def register(client):
-    client.add_handler(broadcast_handler, _broadcast_handler)
+    client.add_handler(
+        filters.command("broadcast"),
+        _broadcast_handler,
+        group=0,
+    )

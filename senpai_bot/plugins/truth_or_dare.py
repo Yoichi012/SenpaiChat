@@ -259,11 +259,11 @@ async def rank_top_handler(client, message: Message):
 
 def register(client):
     # add command handlers
-    client.add_handler(filters.command("truth"), truth_handler)
-    client.add_handler(filters.command("dare"), dare_handler)
-    client.add_handler(filters.command("done"), done_handler)
-    client.add_handler(filters.command("score"), score_handler)
-    client.add_handler(filters.command("topleaderboard"), leaderboard_handler)
-    client.add_handler(filters.command("rank"), rank_handler)
-    client.add_handler(filters.command("rank") & filters.regex(r"^rank top"), rank_top_handler)
-    client.add_handler(filters.callback_query(), callback_query_handler)
+    client.add_handler(filters.command("truth"), truth_handler, group=0)
+    client.add_handler(filters.command("dare"), dare_handler, group=0)
+    client.add_handler(filters.command("done"), done_handler, group=0)
+    client.add_handler(filters.command("score"), score_handler, group=0)
+    client.add_handler(filters.command("topleaderboard"), leaderboard_handler, group=0)
+    client.add_handler(filters.command("rank"), rank_handler, group=0)
+    client.add_handler(filters.command("rank") & filters.regex(r"^rank top"), rank_top_handler, group=0)
+    client.add_handler(filters.callback_query(), callback_query_handler, group=0)

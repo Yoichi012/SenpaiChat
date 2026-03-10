@@ -195,8 +195,8 @@ async def _loadstickers_handler(client, message: Message):
 
 
 def register(client):
-    client.add_handler(filters.private & ~filters.command & ~filters.sticker, _private_handler)
-    client.add_handler(filters.group & ~filters.command & ~filters.sticker, _group_handler)
-    client.add_handler(filters.sticker, _sticker_handler)
-    client.add_handler(filters.command("reset") & filters.private, _reset_handler)
-    client.add_handler(filters.command("loadstickers"), _loadstickers_handler)
+    client.add_handler(filters.private & ~filters.command & ~filters.sticker, _private_handler, group=1)
+    client.add_handler(filters.group & ~filters.command & ~filters.sticker, _group_handler, group=1)
+    client.add_handler(filters.sticker, _sticker_handler, group=1)
+    client.add_handler(filters.command("reset") & filters.private, _reset_handler, group=0)
+    client.add_handler(filters.command("loadstickers"), _loadstickers_handler, group=0)
