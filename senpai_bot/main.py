@@ -30,14 +30,18 @@ def load_plugins(client: Client) -> None:
 
 async def sync_time():
     """Sync system time with NTP servers to fix BadMsgNotification[16] error."""
+    # Try system commands to sync time
     try:
         subprocess.run(
             ["sudo", "ntpdate", "-u", "pool.ntp.org"],
             capture_output=True,
             timeout=10,
         )
-    except Exception:
+        print("✓ System time synced via ntpdate")
+    except Exception as e:
+        print(f"ntpdate failed: {e}")
         pass
+    
     try:
         subprocess.run(
             ["sudo", "timedatectl", "set-ntp", "true"],
@@ -70,6 +74,50 @@ async def main():
 
     load_plugins(app)
 
+    # Attempt start with time offset recovery
+    max_retries = 5
+    retry_count = 0
+    
+    while retry_count < max_retries:
+        try:
+            await app.start()
+            print("✓ Bot started successfully")
+            break
+        except pyrogram.errors.BadMsgNotification as e:
+            if "[16]" in str(e):  # Time sync error
+                print(f"BadMsgNotification [16]: Time sync needed")
+                # Try to disconnect to reset state
+                try:
+                    await app.disconnect()
+                except Exception:
+                    pass
+                
+                retry_count += 1
+                if retry_count >= max_retries:
+                    print("Error: Cannot sync with Telegram servers after multiple retries.")
+                    raise
+                print(f"Time offset detected, retrying... ({retry_count}/{max_retries})")
+                await asyncio.sleep(4)
+            else:
+                raise
+        except ConnectionError as e:
+            # If already connected from a previous attempt, disconnect and retry
+            if "already connected" in str(e).lower():
+                print(f"Connection reset needed, disconnecting...")
+                try:
+                    await app.disconnect()
+                except Exception:
+                    pass
+                retry_count += 1
+                if retry_count >= max_retries:
+                    raise
+                await asyncio.sleep(2)
+            else:
+                raise
+        except Exception as e:
+            print(f"Unexpected error: {type(e).__name__}: {e}")
+            raise
+
     # schedule periodic tasks
     try:
         from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -89,10 +137,12 @@ async def main():
         # apscheduler not available; monthly reset disabled
         pass
 
-    # start the bot
-    async with app:
-        print("Senpai Bot is running...")
+    # Bot is now started, run forever
+    print("Senpai Bot is running...")
+    try:
         await asyncio.Future()  # run forever
+    except KeyboardInterrupt:
+        await app.stop()
 
 
 if __name__ == "__main__":
